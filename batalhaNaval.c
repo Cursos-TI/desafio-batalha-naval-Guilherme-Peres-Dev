@@ -1,196 +1,316 @@
 #include <stdio.h>
+#include <stdlib.h> // Necessario para a funcao abs() usada no Octaedro
+
+//====================================================================
+// DEFINICOES GLOBAIS (CONSTANTES)
+//====================================================================
+#define TAMANHO_TABULEIRO 10
+#define TAMANHO_HABILIDADE 5 // Tamanho das matrizes de habilidade (ex: 5x5)
+#define AGUA 0
+#define NAVIO 3
+#define EFEITO_HABILIDADE 5 // Marcador para area afetada no tabuleiro principal
+#define MARCADOR_HABILIDADE 1 // Marcador de area afetada DENTRO da matriz de habilidade
 
 int main() {
-    
-    // Aqui declarei variais pro tabuleiro e coordenadas
-    int tabuleiro[10][10];
-    
-    // Variaveis para as coordenadas, longas e descritivas
-    int linha_navio_horizontal; 
-    int coluna_navio_horizontal; 
-    int linha_navio_vertical; 
-    int coluna_navio_vertical; 
-    
-    // NOVAS VARIAVEIS PARA OS NAVIOS DIAGONAIS
-    int linha_navio_diag_desc;  // Navio Diagonal Descendente (Linha e Coluna aumentam)
-    int coluna_navio_diag_desc; 
-    int linha_navio_diag_asc;   // Navio Diagonal Ascendente (Linha aumenta, Coluna diminui)
-    int coluna_navio_diag_asc;  
-    
+
+    //====================================================================
+    // DECLARACAO DE VARIAVEIS
+    //====================================================================
+
+    // Tabuleiro principal do jogo
+    int tabuleiro[TAMANHO_TABULEIRO][TAMANHO_TABULEIRO];
+
+    // Matrizes para as areas de efeito das habilidades
+    int habilidade_cone[TAMANHO_HABILIDADE][TAMANHO_HABILIDADE];
+    int habilidade_cruz[TAMANHO_HABILIDADE][TAMANHO_HABILIDADE];
+    int habilidade_octaedro[TAMANHO_HABILIDADE][TAMANHO_HABILIDADE];
+
+    // Coordenadas dos navios 
+    int linha_navio_horizontal = 1;
+    int coluna_navio_horizontal = 2;
+    int linha_navio_vertical = 4;
+    int coluna_navio_vertical = 7;
+    // Adicionando coordenadas para mais 2 navios 
+    int linha_navio_3 = 8; // Exemplo: um horizontal
+    int coluna_navio_3 = 1;
+    int linha_navio_4 = 1; // Exemplo: um vertical
+    int coluna_navio_4 = 5;
+
+
+    // Coordenadas de origem (centro) para cada habilidade no tabuleiro principal
+    int origem_linha_cone = 4;    // Centro do Cone em [4, 4]
+    int origem_coluna_cone = 4;
+    int origem_linha_cruz = 2;    // Centro da Cruz em [2, 7]
+    int origem_coluna_cruz = 7;
+    int origem_linha_octaedro = 7; // Centro do Octaedro em [7, 2]
+    int origem_coluna_octaedro = 2;
+
+
     int i, j; // Variaveis pro for
-    
-    // Flag para checar se a posicao e valida (se deu sobreposicao ou limite)
-    int posicao_invalida; 
-    
-    // tamanho do navio, fixo em 3
-    int tamanho_do_navio = 3; 
+
+    // Flag para checar se a posicao e valida (sobreposicao/limite)
+    int posicao_invalida;
+
+    // Tamanho do navio (fixo em 3)
+    int tamanho_do_navio = 3;
+
+    // Centro da matriz de habilidade (para calculos de forma)
+    int centro_habilidade = TAMANHO_HABILIDADE / 2; // Para 5x5, centro = 2
 
     //====================================================================
-    // APRESENTANDO O JOGO E DEFININDO AS COORDENADAS
+    // APRESENTANDO O JOGO
     //====================================================================
-    
-    printf("***Bem vindos a Batalha Naval (Nivel Aventureiro)***\n");
+
+    printf("*** Bem vindos a Batalha Naval (Nivel Mestre) ***\n");
     printf("==================================================\n");
-    printf("Instrucoes: Tabuleiro 10x10. Quatro navios de tamanho 3 serao posicionados.\n\n");
-    
-    // Coordenadas dos 4 navios (escolhidas para nao sobrepor)
-    
-    // Navios 1 e 2 (Horizontal e Vertical)
-    linha_navio_horizontal = 0;      
-    coluna_navio_horizontal = 0;     
-    
-    linha_navio_vertical = 7;      
-    coluna_navio_vertical = 9;     
-    
-    // Navios 3 e 4 (Diagonais)
-    linha_navio_diag_desc = 2;      // Comeca em [2][2]
-    coluna_navio_diag_desc = 2;     // Ocupa [2][2], [3][3], [4][4]
-    
-    linha_navio_diag_asc = 5;       // Comeca em [5][7]
-    coluna_navio_diag_asc = 7;      // Ocupa [5][7], [6][6], [7][5] (Linha Aumenta, Coluna Diminui)
+    printf("Instrucoes: Tabuleiro %dx%d. Navios posicionados.\n", TAMANHO_TABULEIRO, TAMANHO_TABULEIRO);
+    printf("Visualizacao das areas de efeito das habilidades Cone, Cruz e Octaedro.\n\n");
 
-    
-    printf("---COORDENADAS ESCOLHIDAS---\n");
-    printf("Navio H: [%d, %d] | Navio V: [%d, %d]\n", linha_navio_horizontal, coluna_navio_horizontal, linha_navio_vertical, coluna_navio_vertical);
-    printf("Navio D-Desc: [%d, %d] | Navio D-Asc: [%d, %d]\n", linha_navio_diag_desc, coluna_navio_diag_desc, linha_navio_diag_asc, coluna_navio_diag_asc);
+    printf("--- COORDENADAS DOS NAVIOS ---\n");
+    printf("Navio H1: [%d, %d] | Navio V1: [%d, %d]\n", linha_navio_horizontal, coluna_navio_horizontal, linha_navio_vertical, coluna_navio_vertical);
+    printf("Navio H2: [%d, %d] | Navio V2: [%d, %d]\n", linha_navio_3, coluna_navio_3, linha_navio_4, coluna_navio_4);
     printf("----------------------------\n");
-    
-    
+    printf("--- ORIGEM DAS HABILIDADES ---\n");
+    printf("Cone: [%d, %d] | Cruz: [%d, %d] | Octaedro: [%d, %d]\n", origem_linha_cone, origem_coluna_cone, origem_linha_cruz, origem_coluna_cruz, origem_linha_octaedro, origem_coluna_octaedro);
+    printf("----------------------------\n\n");
+
+
     //====================================================================
-    // 1. INICIALIZACAO DO TABULEIRO 0 = água
+    // 1. INICIALIZACAO DO TABULEIRO (0 = água)
     //====================================================================
-    for (i = 0; i < 10; i++) {
-        for (j = 0; j < 10; j++) {
-            tabuleiro[i][j] = 0; // 0 e a agua
+    for (i = 0; i < TAMANHO_TABULEIRO; i++) {
+        for (j = 0; j < TAMANHO_TABULEIRO; j++) {
+            tabuleiro[i][j] = AGUA; // Usando a constante AGUA
         }
     }
 
+    //====================================================================
+    // 2. POSICIONAMENTO E VALIDAÇÃO DOS NAVIOS (Exemplo com 4 navios)
+    //====================================================================
 
-    //====================================================================
-    // 2. POSICIONAMENTO E VALIDAÇÃO DOS NAVIOS HORIZONTAL E VERTICAL 
-    //====================================================================
-    
-    // Posicionamento Horizontal (Linha Fixa, Coluna Variável)
-    if (coluna_navio_horizontal + tamanho_do_navio - 1 < 10) {
+    // --- NAVIO HORIZONTAL 1 ---
+    if (coluna_navio_horizontal + tamanho_do_navio <= TAMANHO_TABULEIRO) { // checagem de limite
         posicao_invalida = 0;
         for (j = 0; j < tamanho_do_navio; j++) {
-            // Checa Limites (ja checado acima) e Sobreposicao (checa se e diferente de 0)
-            if (tabuleiro[linha_navio_horizontal][coluna_navio_horizontal + j] != 0) { 
+            if (tabuleiro[linha_navio_horizontal][coluna_navio_horizontal + j] != AGUA) {
                 posicao_invalida = 1; break;
             }
         }
         if (posicao_invalida == 0) {
             for (j = 0; j < tamanho_do_navio; j++) {
-                tabuleiro[linha_navio_horizontal][coluna_navio_horizontal + j] = 3; 
+                tabuleiro[linha_navio_horizontal][coluna_navio_horizontal + j] = NAVIO;
             }
-            printf("Navio Horizontal posicionado com sucesso!\n");
-        } else {
-            printf("ERRO: Navio Horizontal invalido (Sobreposicao/Limite).\n");
-        }
-    } else {
-        printf("ERRO: Navio Horizontal fora dos limites (Coluna).\n");
-    }
+            printf("Navio Horizontal 1 posicionado.\n");
+        } else { printf("ERRO: Sobreposicao Navio Horizontal 1.\n"); }
+    } else { printf("ERRO: Limite Navio Horizontal 1.\n"); }
 
-    // Posicionamento Vertical (Coluna Fixa, Linha Variável)
-    if (linha_navio_vertical + tamanho_do_navio - 1 < 10) {
+    // --- NAVIO VERTICAL 1 ---
+    if (linha_navio_vertical + tamanho_do_navio <= TAMANHO_TABULEIRO) { //  checagem de limite
         posicao_invalida = 0;
         for (i = 0; i < tamanho_do_navio; i++) {
-            // Checa Sobreposicao
-            if (tabuleiro[linha_navio_vertical + i][coluna_navio_vertical] != 0) {
-                posicao_invalida = 1; break; 
-            }
-        }
-        if (posicao_invalida == 0) {
-            for (i = 0; i < tamanho_do_navio; i++) {
-                tabuleiro[linha_navio_vertical + i][coluna_navio_vertical] = 3; 
-            }
-            printf("Navio Vertical posicionado com sucesso!\n");
-        } else {
-            printf("ERRO: Navio Vertical invalido (Sobreposicao/Limite).\n");
-        }
-    } else {
-        printf("ERRO: Navio Vertical fora dos limites (Linha).\n");
-    }
-
-
-    //====================================================================
-    // 3. POSICIONAMENTO E VALIDAÇÃO DOS NOVOS NAVIOS DIAGONAIS
-    //====================================================================
-
-    // Navio Diagonal DESCENDENTE (Linha e Coluna AUMENTAM)
-    // VALIDACAO: Checa se a linha final E a coluna final estao dentro do limite (9)
-    if (linha_navio_diag_desc + tamanho_do_navio - 1 < 10 && 
-        coluna_navio_diag_desc + tamanho_do_navio - 1 < 10) {
-        
-        posicao_invalida = 0;
-        for (i = 0; i < tamanho_do_navio; i++) {
-            // Checa Sobreposicao: Linha e Coluna aumentam juntas (i)
-            if (tabuleiro[linha_navio_diag_desc + i][coluna_navio_diag_desc + i] != 0) { 
+            if (tabuleiro[linha_navio_vertical + i][coluna_navio_vertical] != AGUA) {
                 posicao_invalida = 1; break;
             }
         }
         if (posicao_invalida == 0) {
-            // Posiciona o Navio: Linha e Coluna aumentam juntas
             for (i = 0; i < tamanho_do_navio; i++) {
-                tabuleiro[linha_navio_diag_desc + i][coluna_navio_diag_desc + i] = 3; 
+                tabuleiro[linha_navio_vertical + i][coluna_navio_vertical] = NAVIO;
             }
-            printf("Navio Diagonal Descendente posicionado!\n");
-        } else {
-            printf("ERRO: Navio Diagonal Descendente invalido (Sobreposicao).\n");
-        }
-    } else {
-        printf("ERRO: Navio Diagonal Descendente fora dos limites.\n");
-    }
+            printf("Navio Vertical 1 posicionado.\n");
+        } else { printf("ERRO: Sobreposicao Navio Vertical 1.\n"); }
+    } else { printf("ERRO: Limite Navio Vertical 1.\n"); }
 
-
-    // Navio Diagonal ASCENDENTE (Linha AUMENTA, Coluna DIMINUI)
-    // VALIDACAO: Checa se a linha final E a coluna final estao dentro do limite (0 a 9)
-    if (linha_navio_diag_asc + tamanho_do_navio - 1 < 10 && 
-        coluna_navio_diag_asc - tamanho_do_navio + 1 >= 0) { // Coluna nao pode ser negativa
-        
+     // --- NAVIO HORIZONTAL 2 (Exemplo) ---
+    if (coluna_navio_3 + tamanho_do_navio <= TAMANHO_TABULEIRO) {
         posicao_invalida = 0;
-        for (i = 0; i < tamanho_do_navio; i++) {
-            // Checa Sobreposicao: Linha aumenta (i), Coluna diminui (i)
-            if (tabuleiro[linha_navio_diag_asc + i][coluna_navio_diag_asc - i] != 0) { 
+        for (j = 0; j < tamanho_do_navio; j++) {
+            if (tabuleiro[linha_navio_3][coluna_navio_3 + j] != AGUA) {
                 posicao_invalida = 1; break;
             }
         }
         if (posicao_invalida == 0) {
-            // Posiciona o Navio: Linha aumenta, Coluna diminui
-            for (i = 0; i < tamanho_do_navio; i++) {
-                tabuleiro[linha_navio_diag_asc + i][coluna_navio_diag_asc - i] = 3; 
+            for (j = 0; j < tamanho_do_navio; j++) {
+                tabuleiro[linha_navio_3][coluna_navio_3 + j] = NAVIO;
             }
-            printf("Navio Diagonal Ascendente posicionado!\n");
-        } else {
-            printf("ERRO: Navio Diagonal Ascendente invalido (Sobreposicao).\n");
+            printf("Navio Horizontal 2 posicionado.\n");
+        } else { printf("ERRO: Sobreposicao Navio Horizontal 2.\n"); }
+    } else { printf("ERRO: Limite Navio Horizontal 2.\n"); }
+
+    // --- NAVIO VERTICAL 2 (Exemplo) ---
+    if (linha_navio_4 + tamanho_do_navio <= TAMANHO_TABULEIRO) {
+        posicao_invalida = 0;
+        for (i = 0; i < tamanho_do_navio; i++) {
+            if (tabuleiro[linha_navio_4 + i][coluna_navio_4] != AGUA) {
+                posicao_invalida = 1; break;
+            }
         }
-    } else {
-        printf("ERRO: Navio Diagonal Ascendente fora dos limites.\n");
+        if (posicao_invalida == 0) {
+            for (i = 0; i < tamanho_do_navio; i++) {
+                tabuleiro[linha_navio_4 + i][coluna_navio_4] = NAVIO;
+            }
+            printf("Navio Vertical 2 posicionado.\n");
+        } else { printf("ERRO: Sobreposicao Navio Vertical 2.\n"); }
+    } else { printf("ERRO: Limite Navio Vertical 2.\n"); }
+
+    printf("\n"); // Linha em branco para separar
+
+    //====================================================================
+    // 3. CRIACAO DAS MATRIZES DE HABILIDADE (DINAMICA COM LOOPS/IFS)
+    //====================================================================
+
+    // --- INICIALIZANDO MATRIZES COM 0 ---
+    for (i = 0; i < TAMANHO_HABILIDADE; i++) {
+        for (j = 0; j < TAMANHO_HABILIDADE; j++) {
+            habilidade_cone[i][j] = 0;
+            habilidade_cruz[i][j] = 0;
+            habilidade_octaedro[i][j] = 0;
+        }
     }
 
-
-    //====================================================================
-    // 4. EXIBIÇÃO FINAL DO TABULEIRO (10x10)
-    //====================================================================
-
-    printf("\n-------TABULEIRO FINAL (0=Agua | 3=Navio)-------\n");
-
-    // Imprime o cabecalho das Colunas
-    printf("   0 1 2 3 4 5 6 7 8 9\n");
-    printf("  ---------------------\n"); 
-
-    for (i = 0; i < 10; i++) { 
-        // Imprime o indice da Linha
-        printf("%d |", i); 
-        
-        for (j = 0; j < 10; j++) { 
-            // Imprime o valor da posicao
-            printf(" %d", tabuleiro[i][j]); 
+    // --- FORMA DO CONE ---
+    // O cone comeca no centro da linha superior (i=0, j=centro) e se expande
+    // Para cada linha 'i', a area afetada vai de 'centro-i' ate 'centro+i' na coluna 'j'
+    printf("Gerando matriz Cone %dx%d...\n", TAMANHO_HABILIDADE, TAMANHO_HABILIDADE);
+    for (i = 0; i < TAMANHO_HABILIDADE; i++) {
+        for (j = 0; j < TAMANHO_HABILIDADE; j++) {
+            // Condicao para estar dentro do cone (triangulo invertido)
+            if (j >= centro_habilidade - i && j <= centro_habilidade + i) {
+                 // Verificando se a linha i esta dentro dos limites da matriz para o cone descendente
+                 if (i <= centro_habilidade) { // O cone so vai ate a linha central neste exemplo 
+                    habilidade_cone[i][j] = MARCADOR_HABILIDADE;
+                 }
+            }
         }
-        printf("\n"); 
+    }
+
+    // --- GERANDO FORMA DA CRUZ ---
+    // A cruz afeta toda a linha central (i=centro) e toda a coluna central (j=centro)
+    printf("Gerando matriz Cruz %dx%d...\n", TAMANHO_HABILIDADE, TAMANHO_HABILIDADE);
+    for (i = 0; i < TAMANHO_HABILIDADE; i++) {
+        for (j = 0; j < TAMANHO_HABILIDADE; j++) {
+            // Condicao para estar na linha ou coluna central
+            if (i == centro_habilidade || j == centro_habilidade) {
+                habilidade_cruz[i][j] = MARCADOR_HABILIDADE;
+            }
+        }
+    }
+
+    // --- GERANDO FORMA DO OCTAEDRO (LOSANGO) ---
+    printf("Gerando matriz Octaedro %dx%d...\n", TAMANHO_HABILIDADE, TAMANHO_HABILIDADE);
+     for (i = 0; i < TAMANHO_HABILIDADE; i++) {
+        for (j = 0; j < TAMANHO_HABILIDADE; j++) {
+            // Condicao da distancia de Manhattan
+            if (abs(i - centro_habilidade) + abs(j - centro_habilidade) <= centro_habilidade) {
+                habilidade_octaedro[i][j] = MARCADOR_HABILIDADE;
+            }
+        }
+    }
+    printf("\n");
+
+
+
+    //====================================================================
+    // 4. INTEGRACAO DAS HABILIDADES AO TABULEIRO (SOBREPOSICAO)
+    //====================================================================
+    int tab_linha, tab_coluna; // Variaveis temporarias para coordenadas do tabuleiro
+    int hab_i, hab_j; // Variaveis para iterar sobre a matriz de habilidade
+
+    printf("Aplicando efeitos das habilidades no tabuleiro...\n");
+
+    // --- APLICANDO CONE ---
+    for (hab_i = 0; hab_i < TAMANHO_HABILIDADE; hab_i++) {
+        for (hab_j = 0; hab_j < TAMANHO_HABILIDADE; hab_j++) {
+            // Se a posicao na matriz de habilidade esta marcada (== 1)
+            if (habilidade_cone[hab_i][hab_j] == MARCADOR_HABILIDADE) {
+                // Calcula a posicao correspondente no tabuleiro principal
+                // O calculo considera o centro da matriz de habilidade
+                tab_linha = origem_linha_cone - centro_habilidade + hab_i;
+                tab_coluna = origem_coluna_cone - centro_habilidade + hab_j;
+
+                // VALIDACAO DE LIMITES: Verifica se a posicao calculada esta DENTRO do tabuleiro
+                if (tab_linha >= 0 && tab_linha < TAMANHO_TABULEIRO &&
+                    tab_coluna >= 0 && tab_coluna < TAMANHO_TABULEIRO) {
+                    // Marca a posicao no tabuleiro principal com o efeito
+                    // (Pode sobrescrever AGUA ou NAVIO, apenas para visualizacao)
+                     if (tabuleiro[tab_linha][tab_coluna] == AGUA) { // Opcional: Marcar apenas sobre agua
+                         tabuleiro[tab_linha][tab_coluna] = EFEITO_HABILIDADE;
+                     }
+                }
+            }
+        }
+    }
+     printf("- Habilidade Cone aplicada.\n");
+
+    // --- APLICANDO CRUZ ---
+    for (hab_i = 0; hab_i < TAMANHO_HABILIDADE; hab_i++) {
+        for (hab_j = 0; hab_j < TAMANHO_HABILIDADE; hab_j++) {
+            if (habilidade_cruz[hab_i][hab_j] == MARCADOR_HABILIDADE) {
+                tab_linha = origem_linha_cruz - centro_habilidade + hab_i;
+                tab_coluna = origem_coluna_cruz - centro_habilidade + hab_j;
+
+                if (tab_linha >= 0 && tab_linha < TAMANHO_TABULEIRO &&
+                    tab_coluna >= 0 && tab_coluna < TAMANHO_TABULEIRO) {
+                     if (tabuleiro[tab_linha][tab_coluna] == AGUA) {
+                         tabuleiro[tab_linha][tab_coluna] = EFEITO_HABILIDADE;
+                     }
+                }
+            }
+        }
+    }
+    printf("- Habilidade Cruz aplicada.\n");
+
+     // --- APLICANDO OCTAEDRO ---
+    for (hab_i = 0; hab_i < TAMANHO_HABILIDADE; hab_i++) {
+        for (hab_j = 0; hab_j < TAMANHO_HABILIDADE; hab_j++) {
+            if (habilidade_octaedro[hab_i][hab_j] == MARCADOR_HABILIDADE) {
+                tab_linha = origem_linha_octaedro - centro_habilidade + hab_i;
+                tab_coluna = origem_coluna_octaedro - centro_habilidade + hab_j;
+
+                if (tab_linha >= 0 && tab_linha < TAMANHO_TABULEIRO &&
+                    tab_coluna >= 0 && tab_coluna < TAMANHO_TABULEIRO) {
+                     if (tabuleiro[tab_linha][tab_coluna] == AGUA) {
+                         tabuleiro[tab_linha][tab_coluna] = EFEITO_HABILIDADE;
+                     }
+                }
+            }
+        }
+    }
+     printf("- Habilidade Octaedro aplicada.\n\n");
+
+    //====================================================================
+    // 5. EXIBIÇÃO FINAL DO TABULEIRO COM NAVIOS E HABILIDADES
+    //====================================================================
+
+    printf("------- TABULEIRO FINAL (%d=Agua | %d=Navio | %d=Efeito Habilidade) -------\n", AGUA, NAVIO, EFEITO_HABILIDADE);
+
+    //  letras das Colunas (A a J)
+    printf("   A B C D E F G H I J\n");
+     printf("  ---------------------\n");
+
+
+    for (i = 0; i < TAMANHO_TABULEIRO; i++) {
+        // Imprime o numero da Linha (1 a 10) - usei i+1 para ficar mais intuitivo
+        printf("%2d|", i + 1);
+
+        for (j = 0; j < TAMANHO_TABULEIRO; j++) {
+            // if/else if para imprimir o caractere correto
+            if (tabuleiro[i][j] == AGUA) {
+                printf(" %d", AGUA); // Imprime AGUA (0)
+            } else if (tabuleiro[i][j] == NAVIO) {
+                printf(" %d", NAVIO); // Imprime NAVIO (3)
+            } else if (tabuleiro[i][j] == EFEITO_HABILIDADE) {
+                printf(" %d", EFEITO_HABILIDADE); // Imprime EFEITO (5)
+            } else {
+                 printf(" ?"); // Caso inesperado
+            }
+        }
+        printf("\n"); // Quebra de linha ao final de cada linha do tabuleiro
     }
     printf("------------------------------------------------\n");
 
-    //FIM DO PROGRAMA
+
+    //====================================================================
+    // FIM DO PROGRAMA
+    //====================================================================
     return 0;
 }
